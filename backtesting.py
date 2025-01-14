@@ -5,6 +5,40 @@ from backtesting import Strategy
 from backtesting.lib import crossover, barssince
 from backtesting.test import GOOG
 
+# Klines is the candles of some symbol (up to 1500 candles). Dataframe, last elem has [-1] index
+def klines(symbol):
+    try:
+        resp = session.get_kline(
+            category='linear',
+            symbol=symbol,
+            interval=timeframe,
+            limit=500
+        )['result']['list']
+        resp = pd.DataFrame(resp)
+        resp.columns = ['Time', 'Open', 'High',
+                        'Low', 'Close', 'Volume', 'Turnover']
+        resp = resp.set_index('Time')
+        resp = resp.astype(float)
+        resp = resp[::-1]
+        return resp
+    except Exception as err:
+        print(err)
+
+# Bollinger Bands strategy
+def bollinger_bands_signal(symbol):
+    kl = klines(symbol)
+    bb = ta.volatility.BollingerBands(kl.Close)
+    kl['bb_high'] = bb.bollinger_hband()
+    kl['bb_low'] = bb.bollinger_lband()
+    kl['bb_mid'] = bb.bollinger_mavg()
+
+    if kl.Close.iloc[-1] < kl.bb_low.iloc[-1] and kl.Close.iloc[-2] >= kl.bb_low.iloc[-2]:
+        return 'up'
+    if kl.Close.iloc[-1] > kl.bb_high.iloc[-1] and kl.Close.iloc[-2] <= kl.bb_high.iloc[-2]:
+        return 'down'
+    else:
+        return 'none'
+    
 
 class RsiOscillator(Strategy):
     upper_bound = 70

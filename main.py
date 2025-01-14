@@ -1,7 +1,9 @@
-from keys import api, secret
+from settings import api, secret
 from pybit.unified_trading import HTTP
 import pandas as pd
-import ta
+# TODO: Test if panda_ta works and fix new bugs from this change
+# import ta
+import pandas_ta as ta
 from time import sleep
 
 
@@ -42,26 +44,6 @@ def get_tickers():
             if 'USDT' in elem['symbol'] and not 'USDC' in elem['symbol']:
                 symbols.append(elem['symbol'])
         return symbols
-    except Exception as err:
-        print(err)
-
-
-# Klines is the candles of some symbol (up to 1500 candles). Dataframe, last elem has [-1] index
-def klines(symbol):
-    try:
-        resp = session.get_kline(
-            category='linear',
-            symbol=symbol,
-            interval=timeframe,
-            limit=500
-        )['result']['list']
-        resp = pd.DataFrame(resp)
-        resp.columns = ['Time', 'Open', 'High',
-                        'Low', 'Close', 'Volume', 'Turnover']
-        resp = resp.set_index('Time')
-        resp = resp.astype(float)
-        resp = resp[::-1]
-        return resp
     except Exception as err:
         print(err)
 
@@ -181,23 +163,6 @@ def place_order_market(symbol, side):
             print(resp)
         except Exception as err:
             print(err)
-
-
-# Bollinger Bands strategy
-def bollinger_bands_signal(symbol):
-    kl = klines(symbol)
-    bb = ta.volatility.BollingerBands(kl.Close)
-    kl['bb_high'] = bb.bollinger_hband()
-    kl['bb_low'] = bb.bollinger_lband()
-    kl['bb_mid'] = bb.bollinger_mavg()
-
-    if kl.Close.iloc[-1] < kl.bb_low.iloc[-1] and kl.Close.iloc[-2] >= kl.bb_low.iloc[-2]:
-        return 'up'
-    if kl.Close.iloc[-1] > kl.bb_high.iloc[-1] and kl.Close.iloc[-2] <= kl.bb_high.iloc[-2]:
-        return 'down'
-    else:
-        return 'none'
-
 
 max_pos = 50    # Max current orders
 symbols = get_tickers()     # getting all symbols from the Bybit Derivatives
