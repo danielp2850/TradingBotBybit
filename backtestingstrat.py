@@ -1,11 +1,13 @@
 import pandas_ta as ta
 import pandas as pd
-from backtesting import Backtest
-from backtesting import Strategy
+from backtestingstrat import Backtest
+from backtestingstrat import Strategy
 from backtesting.lib import crossover, barssince
 from backtesting.test import GOOG
 
 # Klines is the candles of some symbol (up to 1500 candles). Dataframe, last elem has [-1] index
+
+
 def klines(symbol):
     try:
         resp = session.get_kline(
@@ -25,6 +27,8 @@ def klines(symbol):
         print(err)
 
 # Bollinger Bands strategy
+
+
 def bollinger_bands_signal(symbol):
     kl = klines(symbol)
     bb = ta.volatility.BollingerBands(kl.Close)
@@ -38,7 +42,7 @@ def bollinger_bands_signal(symbol):
         return 'down'
     else:
         return 'none'
-    
+
 
 class RsiOscillator(Strategy):
     upper_bound = 70
@@ -47,7 +51,8 @@ class RsiOscillator(Strategy):
 
     # All initial calculations
     def init(self):
-        self.daily_rsi = self.I(ta.rsi, pd.Series(self.data.Close), self.rsi_window)
+        self.daily_rsi = self.I(ta.rsi, pd.Series(
+            self.data.Close), self.rsi_window)
 
     def next(self):
 
@@ -58,7 +63,6 @@ class RsiOscillator(Strategy):
 
         elif crossover(self.lower_bound, self.daily_rsi):
             self.buy()
-
 
 
 bt = Backtest(GOOG, RsiOscillator, cash=10_000, commission=.002)

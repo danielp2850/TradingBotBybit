@@ -5,6 +5,7 @@ import pandas as pd
 # import ta
 import pandas_ta as ta
 from time import sleep
+from backtestingstrat import bollinger_bands_signal
 
 
 session = HTTP(
@@ -163,6 +164,7 @@ def place_order_market(symbol, side):
             print(resp)
         except Exception as err:
             print(err)
+
 
 max_pos = 50    # Max current orders
 symbols = get_tickers()     # getting all symbols from the Bybit Derivatives
