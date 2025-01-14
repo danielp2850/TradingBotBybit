@@ -183,14 +183,17 @@ def place_order_market(symbol, side):
             print(err)
 
 
-#  RSI strategy
-def rsi_signal(symbol):
+# Bollinger Bands strategy
+def bollinger_bands_signal(symbol):
     kl = klines(symbol)
-    ema = ta.trend.ema_indicator(kl.Close, window=200)
-    rsi = ta.momentum.RSIIndicator(kl.Close).rsi()
-    if rsi.iloc[-3] < 30 and rsi.iloc[-2] < 30 and rsi.iloc[-1] > 30:
+    bb = ta.volatility.BollingerBands(kl.Close)
+    kl['bb_high'] = bb.bollinger_hband()
+    kl['bb_low'] = bb.bollinger_lband()
+    kl['bb_mid'] = bb.bollinger_mavg()
+
+    if kl.Close.iloc[-1] < kl.bb_low.iloc[-1] and kl.Close.iloc[-2] >= kl.bb_low.iloc[-2]:
         return 'up'
-    if rsi.iloc[-3] > 70 and rsi.iloc[-2] > 70 and rsi.iloc[-1] < 70:
+    if kl.Close.iloc[-1] > kl.bb_high.iloc[-1] and kl.Close.iloc[-2] <= kl.bb_high.iloc[-2]:
         return 'down'
     else:
         return 'none'
@@ -217,7 +220,7 @@ while True:
                 if len(pos) >= max_pos:
                     break
                 # Signal to buy or sell
-                signal = rsi_signal(elem)
+                signal = bollinger_bands_signal(elem)
                 if signal == 'up':
                     print(f'Found BUY signal for {elem}')
                     set_mode(elem)
