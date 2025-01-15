@@ -1,17 +1,10 @@
-from settings import api, secret
-from pybit.unified_trading import HTTP
 import pandas as pd
 # TODO: Test if panda_ta works and fix new bugs from this change
 # import ta
 import pandas_ta as ta
 from time import sleep
-from backtestingstrat import bollinger_bands_signal
-
-
-session = HTTP(
-    api_key=api,
-    api_secret=secret
-)
+import session
+from backtesting import bollinger_bands_signal
 
 # Config:
 tp = 0.012  # Take Profit +1.2%
