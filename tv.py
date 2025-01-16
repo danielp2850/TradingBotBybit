@@ -3,6 +3,12 @@ import pandas_ta as ta
 import yfinance as yf
 from lightweight_charts import Chart
 
+def calculate_sma(df, period: int = 50):
+    return pd.DataFrame({
+        'time': df['date'],
+        f'SMA {period}': df['close'].rolling(window=period).mean()
+    }).dropna()
+
 if __name__ == '__main__':
     
     chart = Chart()
@@ -18,18 +24,12 @@ if __name__ == '__main__':
     df.rename(columns={'datetime': 'date'}, inplace=True)
     print(df.head)
 
-    # prepare indicator values
-    sma = df.ta.sma(length=20).to_frame()
-    sma = sma.reset_index()
-    sma = sma.rename(columns={"Date": "time", "SMA_20": "value"})
-    sma = sma.dropna()
-    print(sma)
-
     chart.set(df)
 
     # add sma line
-    line = chart.create_line()    
-    line.set(sma)
+    line = chart.create_line('SMA 50')
+    sma_data = calculate_sma(df, period=50)
+    line.set(sma_data)
 
     # chart.watermark(tickers[0])
     
